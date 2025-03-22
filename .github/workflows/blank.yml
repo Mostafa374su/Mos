@@ -1,0 +1,22 @@
+name: Free RDP
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Download ngrok & Configure
+        run: |
+          Invoke-WebRequest -Uri https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+          tar -xf ngrok.zip
+          .\ngrok authtoken YOUR_NGROK_AUTH_TOKEN
+
+      - name: Start RDP + ngrok
+        run: |
+          Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart
+          net user runneradmin P@ssw0rd123 /add
+          net localgroup administrators runneradmin /add
+          Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          .\ngrok tcp 3389
